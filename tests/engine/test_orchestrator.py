@@ -320,7 +320,7 @@ def test_stage_engine_core_client_shutdown_cleans_children_if_base_shutdown_fail
             assert recursive
             return [fake_child]
 
-    def fail_base_shutdown(self):
+    def fail_base_shutdown(self, **_kwargs):
         raise RuntimeError("base shutdown failed")
 
     monkeypatch.setattr(psutil, "Process", FakePsutilProcess)
@@ -352,7 +352,7 @@ def test_stage_engine_core_client_shutdown_kills_stubborn_children(monkeypatch):
 
     monkeypatch.setattr(psutil, "Process", FakePsutilProcess)
     monkeypatch.setattr(psutil, "wait_procs", lambda procs, timeout: ([], list(procs)))
-    monkeypatch.setattr(AsyncMPClient, "shutdown", lambda self: None)
+    monkeypatch.setattr(AsyncMPClient, "shutdown", lambda self, **kwargs: None)
 
     client = object.__new__(StageEngineCoreClient)
     client._proc = fake_proc
