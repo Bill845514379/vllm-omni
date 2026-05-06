@@ -202,6 +202,13 @@ class Orchestrator:
             await asyncio.gather(request_task, output_task)
         except asyncio.CancelledError:
             raise
+        except EngineDeadError as e:
+            # EngineDeadError from _orchestration_loop means the diffusion
+            # engine died.  All pending requests were already notified and
+            # _shutdown_event was already set by the loop's handler.
+            # During teardown this is expected; the finally block handles
+            # proper cleanup.  Do not re-raise.
+            logger.info("[Orchestrator] Engine dead during shutdown: %s", e)
         except Exception:
             logger.exception("[Orchestrator] Fatal error in orchestrator tasks")
             raise
@@ -251,6 +258,12 @@ class Orchestrator:
             elif msg_type == "shutdown":
                 logger.info("[Orchestrator] Received shutdown signal")
                 self._shutdown_event.set()
+                # Pre-mark stage clients as shutting down to prevent
+                # proc_monitor daemon threads from flagging normal
+                # process exit as EngineDeadError during teardown.
+                for stage_client in self.stage_clients:
+                    if hasattr(stage_client, "_shutting_down"):
+                        stage_client._shutting_down = True
                 self._shutdown_stages()
                 break
             else:
@@ -281,7 +294,30 @@ class Orchestrator:
                 # the output format in the future to simplify the processing logic in Orchestrator.
                 stage_client = self.stage_clients[stage_id]
                 if stage_client.stage_type == "diffusion":
-                    output = stage_client.get_diffusion_output_nowait()
+                    try:
+                        output = stage_client.get_diffusion_output_nowait()
+                    except EngineDeadError as e:
+                        logger.error(
+                            "[Orchestrator] Stage-%s is dead: %s",
+                            stage_id,
+                            e,
+                        )
+                        self._fatal_error = str(e)
+                        self._fatal_error_stage_id = stage_id
+                        for req_id, req_state in list(self.request_states.items()):
+                            if stage_id in req_state.stage_submit_ts:
+                                await self.output_async_queue.put(
+                                    {
+                                        "type": "error",
+                                        "error": str(e),
+                                        "fatal": True,
+                                        "request_id": req_id,
+                                        "stage_id": stage_id,
+                                    }
+                                )
+                                self.request_states.pop(req_id, None)
+                        self._shutdown_event.set()
+                        raise
                     if output is not None:
                         idle = False
 
