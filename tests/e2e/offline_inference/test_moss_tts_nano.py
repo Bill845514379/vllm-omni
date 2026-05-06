@@ -108,6 +108,7 @@ def omni_engine():
     return Omni(model=MODEL_NAME, stage_init_timeout=180)
 
 
+@pytest.mark.advanced_model
 @pytest.mark.omni
 @hardware_test(res={"cuda": "L4"})
 def test_moss_tts_nano_english(omni_engine, ref_audio_path):
@@ -120,6 +121,7 @@ def test_moss_tts_nano_english(omni_engine, ref_audio_path):
     assert not torch.all(audio == 0), "Audio should not be all-zeros (silence)"
 
 
+@pytest.mark.advanced_model
 @pytest.mark.omni
 @hardware_test(res={"cuda": "L4"})
 def test_moss_tts_nano_chinese(omni_engine, ref_audio_path):
@@ -132,6 +134,7 @@ def test_moss_tts_nano_chinese(omni_engine, ref_audio_path):
     assert not torch.all(audio == 0)
 
 
+@pytest.mark.advanced_model
 @pytest.mark.omni
 @hardware_test(res={"cuda": "L4"})
 def test_moss_tts_nano_deterministic(omni_engine, ref_audio_path):
@@ -144,6 +147,7 @@ def test_moss_tts_nano_deterministic(omni_engine, ref_audio_path):
     assert torch.allclose(audio1, audio2, atol=1e-4), "Waveforms should match with same seed"
 
 
+@pytest.mark.advanced_model
 @pytest.mark.omni
 @hardware_test(res={"cuda": "L4"})
 def test_moss_tts_nano_batch(omni_engine, ref_audio_path):
