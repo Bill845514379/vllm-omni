@@ -58,10 +58,12 @@ steps:
             - "/fsx/hf_cache:/fsx/hf_cache"
 
   - label: "Diffusion Model CPU offloading Test"
-    timeout_in_minutes: 20
+    timeout_in_minutes: 30
     depends_on: upload-merge-pipeline
     commands:
       # Single pytest session for one combined summary at end of log.
+      # 30 min: two files (cpu_offload + layerwise_offload), each ~10-12 min
+      # with model download; main branch consistently finishes in ~18-20 min.
       - pytest -s -v tests/e2e/offline_inference/test_diffusion_cpu_offload.py tests/e2e/offline_inference/test_diffusion_layerwise_offload.py
     agents:
       queue: "gpu_1_queue" # g6.4xlarge instance on AWS, has 1 L4 GPU
