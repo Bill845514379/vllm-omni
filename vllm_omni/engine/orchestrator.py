@@ -221,9 +221,10 @@ class Orchestrator:
                 # Pre-mark stage clients as shutting down to prevent
                 # proc_monitor daemon threads from flagging normal
                 # process exit as EngineDeadError during teardown.
-                for stage_client in self.stage_clients:
-                    if hasattr(stage_client, "_shutting_down"):
-                        stage_client._shutting_down = True
+                for pool in self.stage_pools:
+                    for client in pool.clients:
+                        if hasattr(client, "_shutting_down"):
+                            client._shutting_down = True
                 self._shutdown_stages()
                 break
             else:

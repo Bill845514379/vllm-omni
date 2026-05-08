@@ -28,6 +28,7 @@ from vllm.v1.spec_decode.dflash import DFlashProposer
 from vllm.v1.spec_decode.draft_model import DraftModelProposer
 from vllm.v1.spec_decode.eagle import EagleProposer
 from vllm.v1.spec_decode.extract_hidden_states import ExtractHiddenStatesProposer
+from vllm.v1.spec_decode.gemma4 import Gemma4Proposer
 from vllm.v1.utils import record_function_or_nullcontext
 from vllm.v1.worker.gpu_model_runner import (
     EMPTY_MODEL_RUNNER_OUTPUT,
@@ -778,7 +779,7 @@ class GPUGenerationModelRunner(OmniGPUModelRunner, OmniConnectorModelRunnerMixin
             ):
                 assert isinstance(
                     self.drafter,
-                    EagleProposer | DFlashProposer | DraftModelProposer | ExtractHiddenStatesProposer,
+                    EagleProposer | DFlashProposer | DraftModelProposer | ExtractHiddenStatesProposer | Gemma4Proposer,
                 )
                 assert self.speculative_config is not None
                 # Eagle currently only supports PIECEWISE cudagraphs.

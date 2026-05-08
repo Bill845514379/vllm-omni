@@ -28,6 +28,7 @@ from vllm.v1.spec_decode.dflash import DFlashProposer
 from vllm.v1.spec_decode.draft_model import DraftModelProposer
 from vllm.v1.spec_decode.eagle import EagleProposer
 from vllm.v1.spec_decode.extract_hidden_states import ExtractHiddenStatesProposer
+from vllm.v1.spec_decode.gemma4 import Gemma4Proposer
 from vllm.v1.structured_output.utils import apply_grammar_bitmask
 from vllm.v1.utils import record_function_or_nullcontext
 from vllm.v1.worker.gpu_model_runner import (
@@ -821,7 +822,7 @@ class GPUARModelRunner(OmniGPUModelRunner, OmniConnectorModelRunnerMixin):
             if use_gpu_toks:
                 assert isinstance(
                     self.drafter,
-                    EagleProposer | DFlashProposer | DraftModelProposer | ExtractHiddenStatesProposer,
+                    EagleProposer | DFlashProposer | DraftModelProposer | ExtractHiddenStatesProposer | Gemma4Proposer,
                 )
                 sampled_token_ids = sampler_output.sampled_token_ids
                 if input_fits_in_drafter:
