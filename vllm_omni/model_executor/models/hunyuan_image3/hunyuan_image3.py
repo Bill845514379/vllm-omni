@@ -1594,7 +1594,7 @@ class HunyuanImage3ForConditionalGeneration(nn.Module, SupportsMultiModal, Suppo
                 layer.mlp = None
                 del mlp
                 gc.collect()
-                torch.cuda.empty_cache()
+                torch.accelerator.empty_cache()
 
                 layer.mlp = HunyuanImage3SparseMoeBlock(
                     config=self.config,
