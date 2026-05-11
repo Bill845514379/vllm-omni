@@ -390,7 +390,10 @@ class OmniARScheduler(OmniSchedulerMixin, VLLMScheduler):
                     stopped = True
 
             if stopped:
-                if model_runner_output.routed_experts_dict is not None and req_id in model_runner_output.routed_experts_dict:
+                if (
+                    model_runner_output.routed_experts_dict is not None
+                    and req_id in model_runner_output.routed_experts_dict
+                ):
                     routed_experts = model_runner_output.routed_experts_dict[req_id]
 
                 # Capture finish_reason BEFORE _handle_stopped_request, which may

@@ -465,7 +465,10 @@ class OmniGenerationScheduler(OmniSchedulerMixin, VLLMScheduler):
                 stopped = True
 
             if stopped:
-                if model_runner_output.routed_experts_dict is not None and req_id in model_runner_output.routed_experts_dict:
+                if (
+                    model_runner_output.routed_experts_dict is not None
+                    and req_id in model_runner_output.routed_experts_dict
+                ):
                     routed_experts = model_runner_output.routed_experts_dict[req_id]
                 finish_reason = request.get_finished_reason()
                 finished = self._handle_stopped_request(request)
