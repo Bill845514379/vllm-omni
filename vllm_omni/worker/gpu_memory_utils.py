@@ -66,42 +66,10 @@ def get_device_handle(device_id: str | int):
         return nvmlDeviceGetHandleByUUID(device_id)
 
 
-def get_host_pid() -> int | None:
-    """Resolve the host (initial namespace) PID for the current process.
-
-    In containers without --pid=host, os.getpid() returns the container PID
-    while NVML reports host PIDs. Reading /proc/self/status NSpid provides
-    the PID in all namespaces, with the last value being the host PID.
-
-    Returns:
-        Host PID (int), or None if NSpid cannot be determined.
-    """
-    try:
-        with open("/proc/self/status") as f:
-            for line in f:
-                if line.startswith("NSpid:"):
-                    # NSpid:\t<container_pid>\t<host_pid>
-                    parts = line.split()
-                    if len(parts) >= 2:
-                        return int(parts[-1])
-                    break
-    except (OSError, ValueError, IndexError):
-        pass
-    return None
-
-
-def get_process_gpu_memory(
-    local_rank: int,
-    pid: int | None = None,
-) -> int | None:
-    """Get GPU memory used by a process via pynvml.
+def get_process_gpu_memory(local_rank: int) -> int | None:
+    """Get GPU memory used by current process via pynvml.
 
     Supports CUDA_VISIBLE_DEVICES with integer indices, UUIDs, or MIG IDs.
-
-    Args:
-        local_rank: Device index (respects CUDA_VISIBLE_DEVICES ordering).
-        pid: PID to query. If None, uses os.getpid(). For containers
-             without --pid=host, pass the host PID from get_host_pid().
 
     Returns:
         Memory in bytes used by this process, or None if NVML unavailable.
@@ -111,7 +79,7 @@ def get_process_gpu_memory(
     """
     from vllm.third_party.pynvml import nvmlDeviceGetCount
 
-    my_pid = pid if pid is not None else os.getpid()
+    my_pid = os.getpid()
     visible_devices = parse_cuda_visible_devices()
 
     try:

@@ -20,7 +20,6 @@ from vllm_omni.diffusion.data import (
 from vllm_omni.entrypoints.utils import detect_pid_host
 from vllm_omni.platforms import current_omni_platform
 from vllm_omni.worker.gpu_memory_utils import (
-    get_host_pid,
     get_process_gpu_memory,
     is_process_scoped_memory_available,
 )
@@ -123,18 +122,11 @@ class OmniGPUWorkerBase(GPUWorker):
         self.non_torch_memory = profile_result.non_torch_increase
         self.peak_activation_memory = profile_result.torch_peak_increase
 
-        process_memory = None
-        if is_process_scoped_memory_available():
-            if detect_pid_host():
-                process_memory = get_process_gpu_memory(self.local_rank)
-            elif (host_pid := get_host_pid()) is not None:
-                process_memory = get_process_gpu_memory(self.local_rank, pid=host_pid)
-                if process_memory is not None:
-                    logger.debug(
-                        "Using host PID %d for process-scoped memory (container PID is %d)",
-                        host_pid,
-                        os.getpid(),
-                    )
+        process_memory = (
+            get_process_gpu_memory(self.local_rank)
+            if is_process_scoped_memory_available() and detect_pid_host()
+            else None
+        )
 
         if process_memory is not None:
             # NVML available: use per-process memory
