@@ -47,9 +47,20 @@ tts_server_params = [
         OmniServerParams(
             model=MODEL,
             stage_config_path=get_stage_config(),
-            server_args=["--trust-remote-code", "--disable-log-stats"],
+            server_args=["--trust-remote-code", "--no-async-chunk"],
         ),
         id="cosyvoice3",
+    )
+]
+
+tts_async_chunk_server_params = [
+    pytest.param(
+        OmniServerParams(
+            model=MODEL,
+            stage_config_path=get_stage_config(),
+            server_args=["--trust-remote-code"],
+        ),
+        id="cosyvoice3_async_chunk",
     )
 ]
 
@@ -77,7 +88,7 @@ def test_voice_clone_zh_001(omni_server, openai_client) -> None:
 
 
 @hardware_test(res={"cuda": "H100"}, num_cards=1)
-@pytest.mark.parametrize("omni_server", tts_server_params, indirect=True)
+@pytest.mark.parametrize("omni_server", tts_async_chunk_server_params, indirect=True)
 def test_voice_clone_zh_002(omni_server, openai_client) -> None:
     """
     Test voice cloning TTS with Chinese text via async_chunk streaming.
