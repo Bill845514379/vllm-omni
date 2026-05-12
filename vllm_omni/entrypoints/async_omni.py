@@ -931,6 +931,23 @@ class AsyncOmni(EngineClient, OmniBase):
         """Check if tracing is enabled."""
         return False
 
+    async def notify_kv_transfer_request_rejected(
+        self,
+        request_id: str,
+        kv_transfer_params: dict[str, Any],
+        *,
+        data_parallel_rank: int | None = None,
+    ) -> None:
+        """Notify engine that a KV-transfer request was rejected before admission.
+
+        Omni does not currently use KV-transfer pre-admission resources,
+        so this is a no-op.
+        """
+        logger.debug(
+            "KV-transfer request rejected (no-op in omni): request_id=%s",
+            request_id,
+        )
+
     async def do_log_stats(self) -> None:
         """Log statistics.
 

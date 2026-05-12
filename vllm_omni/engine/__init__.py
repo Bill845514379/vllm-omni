@@ -111,6 +111,7 @@ class OmniEngineCoreRequest(EngineCoreRequest):
             external_req_id=request.external_req_id,
             reasoning_ended=request.reasoning_ended,
             reasoning_parser_kwargs=request.reasoning_parser_kwargs,
+            abort_immediately=request.abort_immediately,
             additional_information=additional_information,
         )
 
