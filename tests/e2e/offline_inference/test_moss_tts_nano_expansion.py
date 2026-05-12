@@ -175,7 +175,7 @@ def test_moss_tts_nano_batch(omni_runner: OmniRunner, ref_audio_path) -> None:
     ]
     results = []
     # Single-stage model (num_stages=1): one sampling param for all requests.
-    for stage_outputs in omni_engine.generate(requests, [DEFAULT_SAMPLING]):
+    for stage_outputs in omni_runner.omni.generate(requests, [DEFAULT_SAMPLING]):
         req_output = stage_outputs.request_output
         if req_output is not None:
             mm = req_output.outputs[0].multimodal_output
