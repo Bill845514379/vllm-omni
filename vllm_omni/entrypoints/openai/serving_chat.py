@@ -2048,13 +2048,17 @@ class OmniOpenAIServingChat(OpenAIServingChat, AudioMixin):
         mm_output = final_res.outputs[0].multimodal_output
         audio_data = mm_output.get("audio")
         if isinstance(audio_data, list):
-            if stream:
+            if not audio_data:
+                audio_tensor = None
+            elif stream:
                 audio_tensor = audio_data[-1]
             else:
                 audio_tensor = torch.cat(audio_data, dim=-1)
         else:
             audio_tensor = audio_data
-        audio_tensor = audio_tensor.float().detach().cpu().numpy()
+        if audio_tensor is None:
+            return self._create_error_response("Audio generation completed but no audio was produced.")
+        audio_tensor = audio_tensor.detach().cpu().float().numpy()
 
         # Ensure audio is 1D (flatten if needed)
         if audio_tensor.ndim > 1:
