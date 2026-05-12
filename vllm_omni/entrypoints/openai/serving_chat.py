@@ -148,6 +148,7 @@ class OmniOpenAIServingChat(OpenAIServingChat, AudioMixin):
         instance._diffusion_mode = True
         instance._diffusion_engine = diffusion_engine
         instance._diffusion_model_name = model_name
+        instance.engine_client = None
         return instance
 
     def _get_diffusion_extra_body_params(self) -> frozenset[str]:
