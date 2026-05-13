@@ -308,6 +308,12 @@ class Qwen3OmniMoeForConditionalGeneration(
         self,
         input_tokens: list[int],
         mm_features: list[MultiModalFeatureSpec] | None = None,
+        # V1 runner passes the full multimodal RoPE inputs explicitly, while
+        # vLLM 0.20 calls this method with only input_tokens/mm_features.
+        hf_config: object | None = None,
+        image_grid_thw: list[list[int]] | torch.Tensor | None = None,
+        video_grid_thw: list[list[int]] | torch.Tensor | None = None,
+        second_per_grid_ts: list[float] | None = None,
         **kwargs: object,
     ) -> tuple[torch.Tensor, int]:
         if self.model_stage == "thinker":
@@ -315,7 +321,21 @@ class Qwen3OmniMoeForConditionalGeneration(
                 msg = "Qwen3 Omni thinker get_mrope_input_positions requires mm_features"
                 raise ValueError(msg)
             return self.thinker.get_mrope_input_positions(input_tokens, mm_features)
-        return MRotaryEmbedding.get_input_positions_tensor(input_tokens, **kwargs)
+        if (
+            hf_config is not None
+            and image_grid_thw is not None
+            and video_grid_thw is not None
+        ):
+            return MRotaryEmbedding.get_input_positions_tensor(
+                input_tokens,
+                hf_config=hf_config,
+                image_grid_thw=image_grid_thw,
+                video_grid_thw=video_grid_thw,
+                second_per_grid_ts=second_per_grid_ts,
+                **kwargs,
+            )
+        seq_len = len(input_tokens)
+        return torch.arange(seq_len).unsqueeze(0).expand(3, -1), 0
 
     def forward(
         self,

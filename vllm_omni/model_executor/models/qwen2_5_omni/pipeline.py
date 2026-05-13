@@ -40,7 +40,7 @@ QWEN2_5_OMNI_PIPELINE = PipelineConfig(
             custom_process_input_func=f"{_PROC}.thinker2talker",
             sampling_constraints={
                 "detokenize": True,
-                "stop_token_ids": [8294],
+                "stop_token_ids": [8292, 8294],
             },
         ),
         StagePipelineConfig(

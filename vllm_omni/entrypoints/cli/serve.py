@@ -9,6 +9,7 @@ import argparse
 import json
 import os
 import signal
+import sys
 from types import FrameType
 from typing import Any
 
@@ -22,6 +23,7 @@ from vllm.utils.argparse_utils import FlexibleArgumentParser
 from vllm_omni.engine.arg_utils import nullify_stage_engine_defaults
 from vllm_omni.entrypoints.cli.logo import log_logo
 from vllm_omni.entrypoints.openai.api_server import omni_run_server
+from vllm_omni.entrypoints.utils import detect_explicit_cli_keys
 
 logger = init_logger(__name__)
 
@@ -93,6 +95,10 @@ class OmniServeCommand(CLISubcommand):
         # If model is specified in CLI (as positional arg), it takes precedence
         if hasattr(args, "model_tag") and args.model_tag is not None:
             args.model = args.model_tag
+
+        # Stash the set of long-option keys the user actually typed so the
+        # stage-config factory can give YAML precedence over argparse defaults.
+        args._cli_explicit_keys = detect_explicit_cli_keys(sys.argv[1:], OmniServeCommand._parser)
 
         if args.headless:
             run_headless(args)

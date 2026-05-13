@@ -11,6 +11,7 @@ from collections.abc import Sequence
 from typing import TYPE_CHECKING, Any, Literal
 
 import huggingface_hub
+from vllm import envs
 from vllm.logger import init_logger
 from vllm.v1.engine.exceptions import EngineDeadError, EngineGenerateError
 
@@ -22,6 +23,9 @@ from vllm_omni.metrics.stats import OrchestratorAggregator as OrchestratorMetric
 from vllm_omni.model_executor.model_loader.weight_utils import download_weights_from_hf_specific
 from vllm_omni.outputs import OmniRequestOutput
 
+_omni_use_v2 = os.environ.get("VLLM_OMNI_USE_V2_RUNNER", "0")
+os.environ.setdefault("VLLM_USE_V2_MODEL_RUNNER", _omni_use_v2)
+envs.VLLM_USE_V2_MODEL_RUNNER = _omni_use_v2 == "1"
 if TYPE_CHECKING:
     from vllm_omni.engine.arg_utils import OmniEngineArgs
 

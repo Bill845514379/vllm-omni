@@ -36,6 +36,7 @@ class OmniConnectorOutput:
     has_pending_kv_work: bool = False
 
 
+@dataclass
 class OmniModelRunnerOutput(ModelRunnerOutput):
     """Model runner output for omni models.
 
