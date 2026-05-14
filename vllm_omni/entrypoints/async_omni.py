@@ -956,6 +956,20 @@ class AsyncOmni(EngineClient, OmniBase):
             request_id,
         )
 
+    async def start_weight_update(self, is_checkpoint_format: bool = True) -> None:
+        """Start a new weight update.
+
+        Omni does not currently support weight transfer, so this is a no-op.
+        """
+        logger.debug("Weight update start requested (no-op in omni)")
+
+    async def finish_weight_update(self) -> None:
+        """Finish the current weight update.
+
+        Omni does not currently support weight transfer, so this is a no-op.
+        """
+        logger.debug("Weight update finish requested (no-op in omni)")
+
     async def do_log_stats(self) -> None:
         """Log statistics.
 

@@ -998,11 +998,7 @@ class OmniOpenAIServingChat(OpenAIServingChat, AudioMixin):
                 role = self.get_chat_request_role(request)
 
                 # Compute prompt_text once at first iteration (upstream #42052)
-                prompt_text = (
-                    getattr(res, "prompt", None)
-                    if getattr(request, "return_prompt_text", None)
-                    else None
-                )
+                prompt_text = getattr(res, "prompt", None) if getattr(request, "return_prompt_text", None) else None
 
                 # We need to do it here, because if there are exceptions in
                 # the result_generator, it needs to be sent as the FIRST
