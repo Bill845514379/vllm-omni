@@ -33,12 +33,12 @@ RUN VLLM_WHEEL_URL=$(python3 -c "import urllib.request,re; \
 RUN uv pip install --system ".[dev]"
 
 RUN uv pip install --system --upgrade \
-        "flashinfer-python==0.6.7" \
-        "flashinfer-cubin==0.6.7" \
+        "flashinfer-python==0.6.8.post1" \
+        "flashinfer-cubin==0.6.8.post1" \
         "numpy==2.2.6"
 
 RUN uv pip install --system --upgrade \
-    "flashinfer-jit-cache==0.6.7" \
+    "flashinfer-jit-cache==0.6.8.post1" \
     --index-url https://flashinfer.ai/whl/cu130
 RUN ln -sf /usr/bin/python3 /usr/bin/python
 
