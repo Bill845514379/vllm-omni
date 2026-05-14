@@ -178,22 +178,37 @@ def collect_test_names(target: str, repo_root: Path, raw_line: str) -> list[str]
     """
     Run pytest --collect-only -q for a target and return test node id list (incl. parametrized).
     target: path like tests/foo.py or marker string (e.g. "-m expr"). raw_line used for -m/--run-level.
+    Returns an empty list when collection fails (e.g. missing deps, no matching tests) so the
+    overall report can still be generated for remaining steps.
     """
     extra = _parse_extra_args_from_line(raw_line)
     path_args, _fallback, timeout_quiet = _resolve_pytest_target(target, repo_root, extra, raw_line)
 
     cmd_quiet = [sys.executable, "-m", "pytest", *path_args, "--collect-only", "-q"]
     cmd_quiet.extend(extra)
-    result = subprocess.run(
-        cmd_quiet,
-        cwd=repo_root,
-        capture_output=True,
-        text=True,
-        timeout=timeout_quiet,
-    )
+    try:
+        result = subprocess.run(
+            cmd_quiet,
+            cwd=repo_root,
+            capture_output=True,
+            text=True,
+            timeout=timeout_quiet,
+        )
+    except (subprocess.TimeoutExpired, FileNotFoundError, OSError) as exc:
+        print(
+            f"pytest --collect-only subprocess error for {path_args} with args {extra}: {exc}",
+            file=sys.stderr,
+        )
+        return []
     if result.returncode != 0:
-        raise RuntimeError(f"pytest --collect-only failed for {path_args} with args {extra}: {result.stderr.strip()}")
-    print(f"pytest --collect-only success for {path_args} with args {extra}: {result.stdout.strip()}")
+        print(
+            f"pytest --collect-only failed for {path_args} with args {extra} "
+            f"(rc={result.returncode}); skipping this step.\n"
+            f"  stdout: {result.stdout.strip()}\n"
+            f"  stderr: {result.stderr.strip()}",
+            file=sys.stderr,
+        )
+        return _parse_collect_only_stdout(result.stdout or "", stderr=result.stderr or "", raise_on_empty=False)
     return _parse_collect_only_stdout(result.stdout or "", stderr=result.stderr or "")
 
 
