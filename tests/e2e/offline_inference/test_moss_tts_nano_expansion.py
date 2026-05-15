@@ -119,12 +119,6 @@ def _collect_audio(omni: Omni, request: dict) -> tuple[torch.Tensor, int]:
     raise AssertionError("No stage outputs received")
 
 
-@pytest.fixture(scope="module")
-def omni_engine():
-    """Module-scoped Omni engine to avoid re-loading the model for each test."""
-    return Omni(model=MODEL_NAME, stage_init_timeout=180)
-
-
 @pytest.mark.advanced_model
 @pytest.mark.omni
 @hardware_test(res={"cuda": "L4"})

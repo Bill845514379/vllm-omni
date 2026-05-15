@@ -21,35 +21,12 @@ IMAGE_VIDEO_MODELS = {
 
 MODELS = {**AUDIO_MODEL, **IMAGE_VIDEO_MODELS}
 
+from tests.helpers import skip_if_gated_repo_inaccessible
+
 _GATED_MODELS = {"stabilityai/stable-audio-open-1.0"}
 
-
-def _skip_if_gated_repo_inaccessible(repo_id: str) -> None:
-    """Skip the test if a gated HuggingFace repo is not accessible.
-
-    Tries to download the model's config.json via ``hf_hub_download``,
-    which performs an actual file-access check (unlike ``HfApi().model_info()``
-    that only checks metadata).  If the token has metadata access but not
-    file-download access, ``hf_hub_download`` will raise ``GatedRepoError``
-    and we skip cleanly.
-    """
-    try:
-        from huggingface_hub import hf_hub_download
-        from huggingface_hub.errors import GatedRepoError, RepositoryNotFoundError
-    except Exception:
-        return
-    try:
-        hf_hub_download(repo_id=repo_id, filename="config.json")
-    except GatedRepoError as exc:
-        pytest.skip(
-            f"Skipping: gated HF repo {repo_id!r} inaccessible to the current "
-            f"HF_TOKEN ({exc}). See docs/contributing/ci/hf_credentials.md."
-        )
-    except RepositoryNotFoundError as exc:
-        pytest.skip(f"Skipping: HF repo {repo_id!r} not found ({exc}).")
-    except Exception:
-        return
-
+# Aliased for backward compatibility (imported by test_diffusion_layerwise_offload.py).
+_skip_if_gated_repo_inaccessible = skip_if_gated_repo_inaccessible
 
 AUDIO_MODEL_PARAMS = {
     "runner_params": {},

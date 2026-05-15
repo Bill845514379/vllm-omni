@@ -48,7 +48,6 @@ def _build_mock_modules(mocker: MockerFixture) -> dict[str, object]:
     """Build the dict of modules to inject into sys.modules."""
     platforms_mock = mocker.MagicMock()
     platforms_mock.current_omni_platform.supports_torch_inductor.return_value = False
-    platforms_mock.current_omni_platform.is_npu.return_value = False
 
     logger_mock = mocker.MagicMock()
     logger_mock.init_logger = lambda name: mocker.MagicMock()
