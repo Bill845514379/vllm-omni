@@ -472,25 +472,26 @@ class OmniServeCommand(CLISubcommand):
             default=None,
             help="Scheduler flow_shift for video models (e.g., 5.0 for 720p, 12.0 for 480p).",
         )
-        # Diffusion KV-cache quantization uses dedicated flags so we do not reuse
-        # vLLM's --kv-cache-dtype (AR cache dtype, default "auto").
+        # vLLM already registers --kv-cache-dtype for the serve parser. Keep
+        # this fallback only for older vLLM versions where the option is absent.
+        if "--kv-cache-dtype" not in serve_parser._option_string_actions:
+            omni_config_group.add_argument(
+                "--kv-cache-dtype",
+                type=str,
+                default=None,
+                help="Config-level KV cache dtype (e.g. fp8).",
+            )
         omni_config_group.add_argument(
-            "--diffusion-kv-cache-dtype",
+            "--kv-cache-skip-steps",
             type=str,
             default=None,
-            help="Diffusion attention KV cache dtype (e.g. fp8). Separate from vLLM --kv-cache-dtype.",
+            help="Config-level KV-cache quantization skip-step selector, e.g. '0-9,20,25-30'.",
         )
         omni_config_group.add_argument(
-            "--diffusion-kv-cache-skip-steps",
+            "--kv-cache-skip-layers",
             type=str,
             default=None,
-            help="Diffusion KV-cache quantization skip-step selector, e.g. '0-9,20,25-30'.",
-        )
-        omni_config_group.add_argument(
-            "--diffusion-kv-cache-skip-layers",
-            type=str,
-            default=None,
-            help="Diffusion KV-cache quantization skip-layer selector, e.g. '0,1,4-8'.",
+            help="Config-level KV-cache quantization skip-layer selector, e.g. '0,1,4-8'.",
         )
         omni_config_group.add_argument(
             "--cfg-parallel-size",
