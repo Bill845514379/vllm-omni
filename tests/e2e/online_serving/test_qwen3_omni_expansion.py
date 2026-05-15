@@ -44,7 +44,7 @@ def get_batch_token_config(default_path):
     return modify_stage_config(
         default_path,
         updates={
-            "stages": {0: {"max_num_batched_tokens": 64}, 1: {"max_num_batched_tokens": 64}},
+            "stages": {1: {"max_num_batched_tokens": 64}},
         },
     )
 
@@ -95,12 +95,7 @@ test_params = [
 
 test_token_params = [
     pytest.param(
-        OmniServerParams(
-            model=model,
-            stage_config_path=get_batch_token_config(default_path),
-            use_stage_cli=True,
-            server_args=["--async-chunk"],
-        ),
+        OmniServerParams(model=model, stage_config_path=get_batch_token_config(default_path), use_stage_cli=True),
         id="batch_token_64",
     )
 ]
