@@ -28,7 +28,7 @@ RUN VLLM_WHEEL_URL=$(python3 -c "import urllib.request,re; \
     echo "Installing vLLM from: ${VLLM_WHEEL_URL}" && \
     uv pip install --system --force-reinstall "${VLLM_WHEEL_URL}" && \
     uv pip install --system --force-reinstall "torch==2.11.0" "torchaudio==2.11.0" "torchvision==0.26.0" \
-        --index-url https://download.pytorch.org/whl/cu130
+        --torch-backend cu130
 
 
 
