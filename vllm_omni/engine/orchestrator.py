@@ -29,7 +29,10 @@ from vllm_omni.engine.messages import (
     AddCompanionRequestMessage,
     CollectiveRPCRequestMessage,
     EngineQueueMessage,
+    ErrorMessage,
+    OutputMessage,
     ShutdownRequestMessage,
+    StageMetricsMessage,
     StageSubmissionMessage,
 )
 from vllm_omni.engine.serialization import serialize_additional_information
@@ -500,13 +503,12 @@ class Orchestrator:
                             for req_id, req_state in list(self.request_states.items()):
                                 if stage_id in req_state.stage_submit_ts:
                                     await self.output_async_queue.put(
-                                        {
-                                            "type": "error",
-                                            "error": str(e),
-                                            "fatal": True,
-                                            "request_id": req_id,
-                                            "stage_id": stage_id,
-                                        }
+                                        ErrorMessage(
+                                            error=str(e),
+                                            fatal=True,
+                                            request_id=req_id,
+                                            stage_id=stage_id,
+                                        )
                                     )
                                     self.request_states.pop(req_id, None)
                             self._shutdown_event.set()
@@ -565,12 +567,11 @@ class Orchestrator:
         else:
             parent_id = output.request_id
         await self.output_async_queue.put(
-            {
-                "type": "error",
-                "request_id": parent_id,
-                "stage_id": stage_id,
-                "error": output.error,
-            }
+            ErrorMessage(
+                request_id=parent_id,
+                stage_id=stage_id,
+                error=output.error,
+            )
         )
         await self._cleanup_request_ids(
             [parent_id, *self._cfg_tracker.cleanup_parent(parent_id)],
@@ -627,25 +628,23 @@ class Orchestrator:
 
         if self.stage_pools[stage_id].final_output:
             await self.output_async_queue.put(
-                {
-                    "type": "output",
-                    "request_id": req_id,
-                    "stage_id": stage_id,
-                    "engine_outputs": output,
-                    "metrics": stage_metrics,
-                    "finished": finished and stage_id == req_state.final_stage_id,
-                    "stage_submit_ts": submit_ts,
-                }
+                OutputMessage(
+                    request_id=req_id,
+                    stage_id=stage_id,
+                    engine_outputs=output,
+                    metrics=stage_metrics,
+                    finished=finished and stage_id == req_state.final_stage_id,
+                    stage_submit_ts=submit_ts,
+                )
             )
         elif stage_metrics is not None:
             await self.output_async_queue.put(
-                {
-                    "type": "stage_metrics",
-                    "request_id": req_id,
-                    "stage_id": stage_id,
-                    "metrics": stage_metrics,
-                    "stage_submit_ts": submit_ts,
-                }
+                StageMetricsMessage(
+                    request_id=req_id,
+                    stage_id=stage_id,
+                    metrics=stage_metrics,
+                    stage_submit_ts=submit_ts,
+                )
             )
 
         if self._pd_pair is not None and finished and stage_id == self._pd_pair[0]:
@@ -844,14 +843,13 @@ class Orchestrator:
                             next_logical,
                         )
                         await self.output_async_queue.put(
-                            {
-                                "type": "output",
-                                "request_id": req_id,
-                                "stage_id": next_logical,
-                                "engine_outputs": error_output,
-                                "metrics": None,
-                                "finished": True,
-                            }
+                            OutputMessage(
+                                request_id=req_id,
+                                stage_id=next_logical,
+                                engine_outputs=error_output,
+                                metrics=None,
+                                finished=True,
+                            )
                         )
                         await self._cleanup_request_ids(
                             [req_id, *self._cfg_tracker.cleanup_parent(req_id)],
@@ -1084,13 +1082,12 @@ class Orchestrator:
             if msg.type == "add_request":
                 req_id = msg.request_id
                 await self.output_async_queue.put(
-                    {
-                        "type": "error",
-                        "error": self._fatal_error,
-                        "fatal": True,
-                        "request_id": req_id,
-                        "stage_id": self._fatal_error_stage_id,
-                    }
+                    ErrorMessage(
+                        error=self._fatal_error,
+                        fatal=True,
+                        request_id=req_id,
+                        stage_id=self._fatal_error_stage_id,
+                    )
                 )
                 notified.add(req_id)
 
@@ -1100,13 +1097,12 @@ class Orchestrator:
         for req_id in list(self.request_states):
             if req_id not in notified:
                 await self.output_async_queue.put(
-                    {
-                        "type": "error",
-                        "error": self._fatal_error,
-                        "fatal": True,
-                        "request_id": req_id,
-                        "stage_id": self._fatal_error_stage_id,
-                    }
+                    ErrorMessage(
+                        error=self._fatal_error,
+                        fatal=True,
+                        request_id=req_id,
+                        stage_id=self._fatal_error_stage_id,
+                    )
                 )
             self.request_states.pop(req_id, None)
 
