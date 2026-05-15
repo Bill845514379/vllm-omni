@@ -217,6 +217,15 @@ class OmniOpenAIServingChat(OpenAIServingChat, AudioMixin):
         For diffusion models, this generates images and returns them
         in a chat completion response format.
         """
+        return await self._with_kv_transfer_rejection_cleanup(
+            self._create_chat_completion(request, raw_request), request, raw_request
+        )
+
+    async def _create_chat_completion(
+        self,
+        request: ChatCompletionRequest,
+        raw_request: Request | None = None,
+    ) -> AsyncGenerator[str, None] | ChatCompletionResponse | ErrorResponse:
         # Handle diffusion mode
         if self._diffusion_mode:
             return await self._create_diffusion_chat_completion(request, raw_request)
