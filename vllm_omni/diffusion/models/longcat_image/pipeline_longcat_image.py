@@ -200,6 +200,31 @@ def get_prompt_language(prompt):
     return "en"
 
 
+def _load_with_retry(model_cls, model, subfolder, local_files_only, max_retries=3, delay=10.0):
+    import time
+
+    last_exc = None
+    for attempt in range(max_retries):
+        try:
+            return model_cls.from_pretrained(
+                model, subfolder=subfolder, local_files_only=local_files_only
+            )
+        except OSError:
+            last_exc = None  # OSError (HF API glitch) -> retry
+        except Exception as e:
+            last_exc = e
+            raise
+        if attempt < max_retries - 1:
+            logger.warning(
+                "HF download for %s/%s failed (attempt %d/%d), retrying in %ss...",
+                model, subfolder, attempt + 1, max_retries, delay
+            )
+            time.sleep(delay)
+    raise RuntimeError(
+        f"Failed to load {model}/{subfolder} after {max_retries} attempts"
+    ) from last_exc
+
+
 class LongCatImagePipeline(nn.Module, CFGParallelMixin, DiffusionPipelineProfilerMixin):
     def __init__(
         self,
@@ -227,8 +252,9 @@ class LongCatImagePipeline(nn.Module, CFGParallelMixin, DiffusionPipelineProfile
             model, subfolder="scheduler", local_files_only=local_files_only
         )
 
-        self.text_encoder = Qwen2_5_VLForConditionalGeneration.from_pretrained(
-            model, subfolder="text_encoder", local_files_only=local_files_only
+        self.text_encoder = _load_with_retry(
+            Qwen2_5_VLForConditionalGeneration, model, subfolder="text_encoder",
+            local_files_only=local_files_only
         )
         self.text_processor = Qwen2VLProcessor.from_pretrained(
             model, subfolder="tokenizer", local_files_only=local_files_only
