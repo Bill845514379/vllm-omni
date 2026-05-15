@@ -1,5 +1,5 @@
-from collections.abc import Callable
 import contextlib
+from collections.abc import Callable
 from typing import TYPE_CHECKING, Any, cast
 
 import numpy as np
