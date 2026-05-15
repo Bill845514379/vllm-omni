@@ -28,10 +28,10 @@ from vllm_omni.engine.messages import (
     AbortRequestMessage,
     AddCompanionRequestMessage,
     CollectiveRPCRequestMessage,
+    CollectiveRPCResultMessage,
     EngineQueueMessage,
     ErrorMessage,
     OutputMessage,
-    ShutdownRequestMessage,
     StageMetricsMessage,
     StageSubmissionMessage,
 )
@@ -427,13 +427,12 @@ class Orchestrator:
                 results.append(stage_result)
 
         await self.rpc_async_queue.put(
-            {
-                "type": "collective_rpc_result",
-                "rpc_id": rpc_id,
-                "method": method,
-                "stage_ids": stage_ids,
-                "results": results,
-            }
+            CollectiveRPCResultMessage(
+                rpc_id=rpc_id,
+                method=method,
+                stage_ids=stage_ids,
+                results=results,
+            )
         )
 
     # ---- Orchestration loop ----
