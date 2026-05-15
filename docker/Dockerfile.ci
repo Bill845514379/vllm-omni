@@ -26,9 +26,7 @@ RUN VLLM_WHEEL_URL=$(python3 -c "import urllib.request,re; \
     assert m, f'No x86_64 vLLM wheel found at {index_url}'; \
     print(quote(urljoin(index_url,m.group(1)), safe=':/+%'))") && \
     echo "Installing vLLM from: ${VLLM_WHEEL_URL}" && \
-    uv pip install --system --force-reinstall "${VLLM_WHEEL_URL}" && \
-    uv pip install --system --force-reinstall "torch==2.11.0" "torchaudio==2.11.0" "torchvision==0.26.0" \
-        --torch-backend cu130
+    uv pip install --system --force-reinstall "${VLLM_WHEEL_URL}"
 
 
 
@@ -42,6 +40,14 @@ RUN uv pip install --system --upgrade \
 RUN uv pip install --system --upgrade \
     "flashinfer-jit-cache==0.6.8.post1" \
     --index-url https://flashinfer.ai/whl/cu130
+
+# Force-reinstall torch AFTER flashinfer, because flashinfer --upgrade pulls in
+# a newer torch (2.12.x) whose libtorch_cuda.so lacks
+# at::cuda::getCurrentCUDABlasHandle, causing "undefined symbol" at import time.
+RUN uv pip install --system --force-reinstall \
+    "torch==2.11.0" "torchaudio==2.11.0" "torchvision==0.26.0" \
+    --torch-backend cu130
+
 RUN ln -sf /usr/bin/python3 /usr/bin/python
 
 ENTRYPOINT []
