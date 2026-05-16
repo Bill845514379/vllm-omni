@@ -15,14 +15,13 @@ import numpy as np
 import pytest
 import torch
 
+from tests.helpers import skip_if_gated_repo_inaccessible
 from tests.helpers.assertions import assert_audio_valid
 from tests.helpers.mark import hardware_test
 from vllm_omni import Omni
 from vllm_omni.inputs.data import OmniDiffusionSamplingParams
 from vllm_omni.outputs import OmniRequestOutput
 from vllm_omni.platforms import current_omni_platform
-
-from tests.helpers import skip_if_gated_repo_inaccessible
 
 pytestmark = [pytest.mark.full_model, pytest.mark.diffusion]
 

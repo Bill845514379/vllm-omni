@@ -5,6 +5,7 @@ import pytest
 import torch
 from vllm.distributed.parallel_state import cleanup_dist_env_and_memory
 
+from tests.helpers import skip_if_gated_repo_inaccessible
 from tests.helpers.env import DeviceMemoryMonitor
 from tests.helpers.mark import hardware_test
 from tests.helpers.runtime import OmniRunner
@@ -20,8 +21,6 @@ IMAGE_VIDEO_MODELS = {
 }
 
 MODELS = {**AUDIO_MODEL, **IMAGE_VIDEO_MODELS}
-
-from tests.helpers import skip_if_gated_repo_inaccessible
 
 _GATED_MODELS = {"stabilityai/stable-audio-open-1.0"}
 
